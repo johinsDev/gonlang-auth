@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,13 @@ func (h *Handler) Mail(c *gin.Context) {
 
 	mailer := mail.NewMailer()
 
-	mailer.Send("template.html", "", func(message *mail.Message) {
+	mailer.Send([]string{"layout.html", "template.html"}, struct {
+		Name string
+		URL  string
+	}{
+		Name: user.Name,
+		URL:  "Holi",
+	}, func(message *mail.Message, template *template.Template) {
 		message.SetTo(user.Name, user.Email).SetSubject("Testing golang")
 	})
 

@@ -1,7 +1,9 @@
 package mail
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"log"
 	"net/smtp"
 
@@ -14,6 +16,7 @@ type Mailer struct {
 		Name    string
 		Address string
 	}
+	Config *config.MaiLConfig
 }
 
 func (m *Mailer) Alwaysfrom(address string, name ...string) *Mailer {
@@ -28,28 +31,33 @@ func (m *Mailer) Alwaysfrom(address string, name ...string) *Mailer {
 	return m
 }
 
-func (m *Mailer) Send(view string, data interface{}, cb ...func(message *Message)) {
+func (m *Mailer) getAddr() string {
+	return fmt.Sprintf("%s:%s", m.Config.HOST, m.Config.PORT)
+}
+
+func (m *Mailer) Send(
+	views []string,
+	data interface{},
+	cb ...func(message *Message, template *template.Template),
+) {
 	message := m.buildMessage()
 
 	callback := cb[0]
 
+	buf, t := m.parseView(views, data)
+
 	if callback != nil {
-		callback(message)
+		callback(message, t)
 	}
 
-	config := config.GetMailConfig()
-
-	msg := []byte("To: " + message.To[0] + "\r\n" +
-		"Subject: Why are you not using Mailtrap yet?\r\n" +
-		"\r\n" +
-		"Here’s the space for our great sales pitch\r\n")
+	message.SetBody(buf.String())
 
 	err := smtp.SendMail(
-		fmt.Sprintf("%s:%s", config.HOST, config.PORT),
+		m.getAddr(),
 		m.Auth,
 		message.From,
 		message.To,
-		msg,
+		message.GetBody(),
 	)
 
 	if err != nil {
@@ -57,6 +65,25 @@ func (m *Mailer) Send(view string, data interface{}, cb ...func(message *Message
 	}
 
 	fmt.Println("message.To", message.To)
+}
+
+func (m Mailer) parseView(views []string, data interface{}) (*bytes.Buffer, *template.Template) {
+
+	t, err := template.ParseFiles(views...)
+
+	if err != nil {
+		log.Fatal("Error sending mail", err)
+	}
+
+	buf := new(bytes.Buffer)
+
+	t.ExecuteTemplate(buf, "layout", nil)
+
+	if err = t.Execute(buf, data); err != nil {
+		log.Fatal("Error sending mail", err)
+	}
+
+	return buf, t
 }
 
 func (m Mailer) buildMessage() *Message {
@@ -75,7 +102,8 @@ func NewMailer() *Mailer {
 	)
 
 	mailer := &Mailer{
-		Auth: auth,
+		Auth:   auth,
+		Config: config,
 	}
 
 	return mailer.Alwaysfrom(config.FROM.ADDRESS, config.FROM.NAME)
