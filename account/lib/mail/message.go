@@ -5,6 +5,7 @@ type Message struct {
 	To      []string
 	Subject string
 	Body    string
+	View    []string
 }
 
 const (

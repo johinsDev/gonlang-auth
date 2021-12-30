@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johinsDev/authentication/lib/mail"
+	"github.com/johinsDev/authentication/mails"
 	"github.com/johinsDev/authentication/models"
 )
 
@@ -47,15 +47,19 @@ func (h *Handler) Mail(c *gin.Context) {
 
 	mailer := mail.NewMailer()
 
-	mailer.Send([]string{"layout.html", "template.html"}, struct {
-		Name string
-		URL  string
-	}{
-		Name: user.Name,
-		URL:  "Holi",
-	}, func(message *mail.Message, template *template.Template) {
-		message.SetTo(user.Name, user.Email).SetSubject("Testing golang")
+	mailer.To(user.Email, user.Name).Send(&mails.Welcome{
+		Mailable: mail.Mailable{},
 	})
+
+	// mailer.Send([]string{"layout.html", "template.html"}, struct {
+	// 	Name string
+	// 	URL  string
+	// }{
+	// 	Name: user.Name,
+	// 	URL:  "Holi",
+	// }, func(message *mail.Message, template *template.Template) {
+	// 	message.SetTo(user.Name, user.Email).SetSubject("Testing golang")
+	// })
 
 	c.JSON(http.StatusOK, gin.H{
 		"hello": "it's Mail",

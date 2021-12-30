@@ -35,6 +35,34 @@ func (m *Mailer) getAddr() string {
 	return fmt.Sprintf("%s:%s", m.Config.HOST, m.Config.PORT)
 }
 
+func (m *Mailer) To(address string, name ...string) *PendingMail {
+	pedingMail := &PendingMail{
+		mailer: m,
+		to: struct {
+			Name    string
+			Address string
+		}{},
+	}
+
+	pedingMail.To(address, name...)
+
+	return pedingMail
+}
+
+func (m *Mailer) SendMailable(
+	mailable MailableContract,
+	to struct {
+		Name    string
+		Address string
+	},
+) {
+	message := &Message{}
+
+	message.SetTo(to.Address, to.Name)
+
+	mailable.Send(m, mailable.Build(message))
+}
+
 func (m *Mailer) Send(
 	views []string,
 	data interface{},
@@ -90,6 +118,8 @@ func (m Mailer) buildMessage() *Message {
 	message := &Message{}
 	return message.SetFrom(m.From.Address, m.From.Name)
 }
+
+// Constructor
 
 func NewMailer() *Mailer {
 	config := config.GetMailConfig()
