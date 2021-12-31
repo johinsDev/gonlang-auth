@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"log"
 	"net/smtp"
+	"strconv"
 
 	"github.com/johinsDev/authentication/config"
+	"gopkg.in/gomail.v2"
 )
 
 type Mailer struct {
@@ -56,11 +58,10 @@ func (m *Mailer) SendMailable(
 		Address string
 	},
 ) {
-	message := &Message{}
 
-	message.SetTo(to.Address, to.Name)
+	mailable.Build()
 
-	mailable.Send(m, mailable.Build(message))
+	mailable.To(to.Address).Send(m)
 }
 
 func (m *Mailer) Send(
@@ -78,21 +79,43 @@ func (m *Mailer) Send(
 		callback(message, t)
 	}
 
-	message.SetBody(buf.String())
+	message.Body(buf.String())
+	// SMTP DRIVER
 
-	err := smtp.SendMail(
-		m.getAddr(),
-		m.Auth,
-		message.From,
-		message.To,
-		message.GetBody(),
+	PORT, err := strconv.Atoi(m.Config.PORT)
+
+	if err != nil {
+		log.Fatal("Error loading PORT")
+	}
+
+	d := gomail.NewDialer(
+		m.Config.HOST,
+		PORT,
+		m.Config.USERNAME,
+		m.Config.PASSWORD,
 	)
+
+	s, err := d.Dial()
+
+	messageGoMail := gomail.NewMessage()
+
+	messageGoMail.SetHeader("From", message.from)
+
+	for _, to := range message.to {
+		messageGoMail.SetAddressHeader("To", to, to)
+	}
+
+	messageGoMail.SetHeader("Subject", message.subject)
+
+	messageGoMail.SetBody("text/html", message.body)
+
+	if err := gomail.Send(s, messageGoMail); err != nil {
+		log.Fatal("Error sending mail", err)
+	}
 
 	if err != nil {
 		log.Fatal("Error sending mail", err)
 	}
-
-	fmt.Println("message.To", message.To)
 }
 
 func (m Mailer) parseView(views []string, data interface{}) (*bytes.Buffer, *template.Template) {
@@ -116,7 +139,12 @@ func (m Mailer) parseView(views []string, data interface{}) (*bytes.Buffer, *tem
 
 func (m Mailer) buildMessage() *Message {
 	message := &Message{}
-	return message.SetFrom(m.From.Address, m.From.Name)
+
+	if m.From.Address != "" {
+		message.From(m.From.Address, m.From.Name)
+	}
+
+	return message
 }
 
 // Constructor

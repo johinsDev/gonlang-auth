@@ -1,43 +1,43 @@
 package mail
 
 type Message struct {
-	From    string
-	To      []string
-	Subject string
-	Body    string
-	View    []string
+	from    string
+	to      []string
+	subject string
+	body    string
+	view    []string
 }
 
 const (
 	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 
-func (m *Message) SetFrom(adddress string, name ...string) *Message {
-	m.From = adddress
+func (m *Message) From(adddress string, name ...string) *Message {
+	m.from = adddress
 
 	return m
 }
 
-func (m *Message) SetTo(adddress string, name ...string) *Message {
-	m.To = append(m.To, adddress)
+func (m *Message) To(adddress string, name ...string) *Message {
+	m.to = append(m.to, adddress)
 
 	return m
 }
 
-func (m *Message) SetSubject(subject string) *Message {
-	m.Subject = subject
+func (m *Message) Subject(subject string) *Message {
+	m.subject = subject
 
 	return m
 }
 
-func (m *Message) SetBody(body string) *Message {
-	subject := "Subject: " + m.Subject + "!\n"
+func (m *Message) Body(body string) *Message {
+	subject := "Subject: " + m.subject + "!\n"
 
-	m.Body = subject + MIME + "\n" + body
+	m.body = subject + MIME + "\n" + body
 
 	return m
 }
 
 func (m *Message) GetBody() []byte {
-	return []byte(m.Body)
+	return []byte(m.body)
 }

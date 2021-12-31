@@ -46,9 +46,13 @@ func (h *Handler) Mail(c *gin.Context) {
 	user.Email = "johandbz@hotmail.com"
 
 	mailer := mail.NewMailer()
-
+	// TODO
+	// migrate to gomail
+	// review how handle layout
+	// and data
 	mailer.To(user.Email, user.Name).Send(&mails.Welcome{
 		Mailable: mail.Mailable{},
+		User:     &user,
 	})
 
 	// mailer.Send([]string{"layout.html", "template.html"}, struct {
