@@ -11,10 +11,12 @@ type Welcome struct {
 }
 
 func (m *Welcome) Build() {
-	m.Subject("Testing from mailable").
-		From("noreply@johinsdev.com").
+	m.
+		Subject("Welcome to codecourse").
+		From("noreply@codecourse.com", "No reply").
 		Layout([]string{"layout"}).
-		View([]string{"layout.html", "template.html"}).
+		View([]string{"template.html", "layout.html"}).
+		Attach("models/user.go").
 		With(struct {
 			Name string
 			URL  string

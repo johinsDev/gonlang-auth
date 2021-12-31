@@ -2,7 +2,6 @@ package mail
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"log"
 	"net/smtp"
@@ -31,10 +30,6 @@ func (m *Mailer) Alwaysfrom(address string, name ...string) *Mailer {
 	}
 
 	return m
-}
-
-func (m *Mailer) getAddr() string {
-	return fmt.Sprintf("%s:%s", m.Config.HOST, m.Config.PORT)
 }
 
 func (m *Mailer) To(address string, name ...string) *PendingMail {
@@ -67,21 +62,21 @@ func (m *Mailer) SendMailable(
 func (m *Mailer) Send(
 	views []string,
 	data interface{},
-	cb ...func(message *Message, template *template.Template),
+	cb ...func(message *Message),
 ) {
 	message := m.buildMessage()
 
 	callback := cb[0]
 
-	buf, t := m.parseView(views, data)
-
-	if callback != nil {
-		callback(message, t)
-	}
+	buf, _ := m.parseView(views, data, message.layout)
 
 	message.Body(buf.String())
-	// SMTP DRIVER
 
+	if callback != nil {
+		callback(message)
+	}
+
+	// SMTP DRIVER
 	PORT, err := strconv.Atoi(m.Config.PORT)
 
 	if err != nil {
@@ -99,26 +94,30 @@ func (m *Mailer) Send(
 
 	messageGoMail := gomail.NewMessage()
 
-	messageGoMail.SetHeader("From", message.from)
+	messageGoMail.SetHeader("From", message.from.Address, message.from.Name)
 
 	for _, to := range message.to {
-		messageGoMail.SetAddressHeader("To", to, to)
+		messageGoMail.SetAddressHeader("To", to.Address, to.Name)
 	}
 
 	messageGoMail.SetHeader("Subject", message.subject)
 
 	messageGoMail.SetBody("text/html", message.body)
 
-	if err := gomail.Send(s, messageGoMail); err != nil {
-		log.Fatal("Error sending mail", err)
+	for _, file := range message.attachments {
+		messageGoMail.Attach(file)
 	}
 
-	if err != nil {
+	if err := gomail.Send(s, messageGoMail); err != nil {
 		log.Fatal("Error sending mail", err)
 	}
 }
 
-func (m Mailer) parseView(views []string, data interface{}) (*bytes.Buffer, *template.Template) {
+func (m Mailer) parseView(
+	views []string,
+	data interface{},
+	layout []string,
+) (*bytes.Buffer, *template.Template) {
 
 	t, err := template.ParseFiles(views...)
 
@@ -126,15 +125,15 @@ func (m Mailer) parseView(views []string, data interface{}) (*bytes.Buffer, *tem
 		log.Fatal("Error sending mail", err)
 	}
 
-	buf := new(bytes.Buffer)
+	var buf bytes.Buffer
 
-	t.ExecuteTemplate(buf, "layout", nil)
+	t.ExecuteTemplate(&buf, "layout", data)
 
-	if err = t.Execute(buf, data); err != nil {
-		log.Fatal("Error sending mail", err)
+	for _, v := range layout {
+		t.ExecuteTemplate(&buf, v, data)
 	}
 
-	return buf, t
+	return &buf, t
 }
 
 func (m Mailer) buildMessage() *Message {

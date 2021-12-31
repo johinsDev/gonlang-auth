@@ -1,25 +1,64 @@
 package mail
 
 type Message struct {
-	from    string
-	to      []string
-	subject string
-	body    string
-	view    []string
+	from struct {
+		Name    string
+		Address string
+	}
+	to []struct {
+		Name    string
+		Address string
+	}
+	subject     string
+	body        string
+	view        []string
+	layout      []string
+	attachments []string
 }
 
-const (
-	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-)
+func (m *Message) GetName(name ...string) string {
+	Name := ""
+
+	if len(name) >= 1 {
+		Name = name[0]
+	}
+
+	return Name
+}
+
+func (m *Message) Attach(file string) *Message {
+	m.attachments = append(m.attachments, file)
+
+	return m
+}
+
+func (m *Message) Layout(layout []string) *Message {
+	m.layout = append(m.layout, layout...)
+
+	return m
+}
 
 func (m *Message) From(adddress string, name ...string) *Message {
-	m.from = adddress
+	m.from = struct {
+		Name    string
+		Address string
+	}{
+		Name:    m.GetName(name...),
+		Address: adddress,
+	}
 
 	return m
 }
 
 func (m *Message) To(adddress string, name ...string) *Message {
-	m.to = append(m.to, adddress)
+
+	m.to = append(m.to, struct {
+		Name    string
+		Address string
+	}{
+		Name:    m.GetName(name...),
+		Address: adddress,
+	})
 
 	return m
 }
@@ -31,9 +70,8 @@ func (m *Message) Subject(subject string) *Message {
 }
 
 func (m *Message) Body(body string) *Message {
-	subject := "Subject: " + m.subject + "!\n"
 
-	m.body = subject + MIME + "\n" + body
+	m.body = body
 
 	return m
 }

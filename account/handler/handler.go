@@ -62,7 +62,7 @@ func (h *Handler) Mail(c *gin.Context) {
 	// 	Name: user.Name,
 	// 	URL:  "Holi",
 	// }, func(message *mail.Message, template *template.Template) {
-	// 	message.SetTo(user.Name, user.Email).SetSubject("Testing golang")
+	// 	message.To(user.Email, user.Name).Subject("Testing golang")
 	// })
 
 	c.JSON(http.StatusOK, gin.H{
