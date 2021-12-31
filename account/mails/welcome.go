@@ -12,6 +12,7 @@ type Welcome struct {
 
 func (m *Welcome) Build() {
 	m.
+		CC("otyheremail@gmail.com", "testing@gmail.com").
 		Subject("Welcome to codecourse").
 		From("noreply@codecourse.com", "No reply").
 		Layout([]string{"layout"}).

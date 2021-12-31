@@ -5,7 +5,7 @@ type Message struct {
 		Name    string
 		Address string
 	}
-	to []struct {
+	to struct {
 		Name    string
 		Address string
 	}
@@ -14,6 +14,7 @@ type Message struct {
 	view        []string
 	layout      []string
 	attachments []string
+	cc          []string
 }
 
 func (m *Message) GetName(name ...string) string {
@@ -24,6 +25,12 @@ func (m *Message) GetName(name ...string) string {
 	}
 
 	return Name
+}
+
+func (m *Message) CC(address ...string) *Message {
+	m.cc = append(m.cc, address...)
+
+	return m
 }
 
 func (m *Message) Attach(file string) *Message {
@@ -52,13 +59,13 @@ func (m *Message) From(adddress string, name ...string) *Message {
 
 func (m *Message) To(adddress string, name ...string) *Message {
 
-	m.to = append(m.to, struct {
+	m.to = struct {
 		Name    string
 		Address string
 	}{
 		Name:    m.GetName(name...),
 		Address: adddress,
-	})
+	}
 
 	return m
 }

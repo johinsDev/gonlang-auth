@@ -53,10 +53,11 @@ func (m *Mailer) SendMailable(
 		Address string
 	},
 ) {
+	mailable.To(to.Address)
 
 	mailable.Build()
 
-	mailable.To(to.Address).Send(m)
+	mailable.Send(m)
 }
 
 func (m *Mailer) Send(
@@ -96,9 +97,7 @@ func (m *Mailer) Send(
 
 	messageGoMail.SetHeader("From", message.from.Address, message.from.Name)
 
-	for _, to := range message.to {
-		messageGoMail.SetAddressHeader("To", to.Address, to.Name)
-	}
+	messageGoMail.SetAddressHeader("To", message.to.Address, message.to.Name)
 
 	messageGoMail.SetHeader("Subject", message.subject)
 
@@ -107,6 +106,8 @@ func (m *Mailer) Send(
 	for _, file := range message.attachments {
 		messageGoMail.Attach(file)
 	}
+
+	messageGoMail.SetHeader("Cc", message.cc...)
 
 	if err := gomail.Send(s, messageGoMail); err != nil {
 		log.Fatal("Error sending mail", err)
