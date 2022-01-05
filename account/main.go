@@ -2,26 +2,44 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gin-gonic/gin"
+	"github.com/gookit/config"
+	"github.com/gookit/config/yaml"
 	"github.com/johinsDev/authentication/handler"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// you could insert your favorite logger here for structured or leveled logging
-	log.Println("Starting server...")
+	// Init config
+	// init dig
+	// logger wrap logrus, provier
+	// databa providers
+	// inject models
+	// gin provider
+	// readme files ( app/dto, app/models app/controllers app/routes app/middleware app/services app/repository, config, boostrap, mails, lib)
 
-	err := godotenv.Load(".env")
+	// you could insert your favorite logger here for structured or leveled logging
+	log.SetFormatter(&log.JSONFormatter{
+		PrettyPrint: true,
+	})
+
+	log.Info("Starting server...")
+
+	config.WithOptions(config.ParseEnv)
+
+	config.AddDriver(yaml.Driver)
+
+	err := config.LoadFiles("config/auth.yml")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		panic(err)
 	}
 
 	router := gin.Default()
@@ -38,11 +56,11 @@ func main() {
 	// Graceful server shutdown - https://github.com/gin-gonic/examples/blob/master/graceful-shutdown/graceful-shutdown/server.go
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to initialize server: %v\n", err)
+			log.Error("Failed to initialize server: %v\n", err)
 		}
 	}()
 
-	log.Printf("Listening on port %v\n", srv.Addr)
+	log.Info("Listening on port %v\n", srv.Addr)
 
 	// Wait for kill signal of channel
 	quit := make(chan os.Signal)
@@ -58,8 +76,8 @@ func main() {
 	defer cancel()
 
 	// Shutdown server
-	log.Println("Shutting down server...")
+	log.Info("Shutting down server...")
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v\n", err)
+		log.Error("Server forced to shutdown: %v\n", err)
 	}
 }

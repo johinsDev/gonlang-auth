@@ -10,6 +10,10 @@ type Welcome struct {
 	mail.Mailable
 }
 
+// Todo support ses
+// manager
+// switch driver
+// queue or later
 func (m *Welcome) Build() {
 	m.
 		CC("otyheremail@gmail.com", "testing@gmail.com").
