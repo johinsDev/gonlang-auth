@@ -4,8 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johinsDev/authentication/lib/mail"
-	"github.com/johinsDev/authentication/mails"
+	"github.com/johinsDev/authentication/lib/hash"
 	"github.com/johinsDev/authentication/models"
 )
 
@@ -45,15 +44,32 @@ func (h *Handler) Mail(c *gin.Context) {
 	user.Name = "johan"
 	user.Email = "johandbz@hotmail.com"
 
-	mailer := mail.NewMailer()
+	hasher := hash.NewHasher(&hash.Config{
+		DefaultHash: "bcrypt",
+		List: map[string]interface{}{
+			"bcrypt": &hash.BcryptConfig{
+				Rounds: 10,
+			},
+			"argon": &hash.ArgonConfig{
+				Iterations: 10,
+			},
+		},
+		// List: make(map[string]interface{}, {
+		// 	"bcrypt":
+		// }),
+	})
+
+	hasher.Use("argon").Make("test")
+
+	// mailer := mail.NewMailer()
 	// TODO
 	// migrate to gomail
 	// review how handle layout
 	// and data
-	mailer.To(user.Email, user.Name).Send(&mails.Welcome{
-		Mailable: mail.Mailable{},
-		User:     &user,
-	})
+	// mailer.To(user.Email, user.Name).Send(&mails.Welcome{
+	// 	Mailable: mail.Mailable{},
+	// 	User:     &user,
+	// })
 
 	// mailer.Send([]string{"layout.html", "template.html"}, struct {
 	// 	Name string

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -9,6 +10,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gookit/config"
@@ -36,10 +39,35 @@ func main() {
 
 	config.AddDriver(yaml.Driver)
 
-	err := config.LoadFiles("config/auth.yml")
+	err := config.LoadFiles("config/auth.yml", "config/database.yml")
 
 	if err != nil {
 		panic(err)
+	}
+
+	log.Info("Starting database...")
+
+	host, _ := config.String("DB_HOST")
+	port, _ := config.String("DB_PORT")
+	username, _ := config.String("DB_USERNAME")
+	password, _ := config.String("DB_PASSWORD")
+	name, _ := config.String("DB_NAME")
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s",
+		host,
+		username,
+		password,
+		name,
+		port,
+	)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	fmt.Println(db)
+
+	if err != nil {
+		log.Error("Error loading database", err)
 	}
 
 	router := gin.Default()
