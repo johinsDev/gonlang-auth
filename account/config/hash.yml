@@ -1,0 +1,8 @@
+HASH:
+  DRIVER: "bcrypt"
+
+  BCRYPT:
+    ROUNDS: 10
+    DRIVER: "bcrypt"
+  FAKER:
+    DRIVER: "faker"

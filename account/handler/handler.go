@@ -38,28 +38,74 @@ func NewHandler(c *Config) {
 	g.GET("/mail", h.Mail)
 }
 
+type CustomDriverConfig struct {
+	hash.BaseConfig
+}
+
+type CustomDriver struct {
+	Config *CustomDriverConfig
+}
+
+func (hassher *CustomDriver) Make(value string) (string, error) {
+	return value, nil
+}
+
+func (hasher *CustomDriver) Verify(hashedValue string, plainValue string) (bool, error) {
+	return hashedValue == plainValue, nil
+}
+
+type CustomBcrypt struct {
+	Config hash.BcryptConfig
+}
+
+func (hassher *CustomBcrypt) Make(value string) (string, error) {
+	return value, nil
+}
+
+func (hasher *CustomBcrypt) Verify(hashedValue string, plainValue string) (bool, error) {
+	return hashedValue == plainValue, nil
+}
+
 func (h *Handler) Mail(c *gin.Context) {
 	user := models.User{}
 
 	user.Name = "johan"
 	user.Email = "johandbz@hotmail.com"
 
-	hasher := hash.NewHasher(&hash.Config{
-		DefaultHash: "bcrypt",
-		List: map[string]interface{}{
-			"bcrypt": &hash.BcryptConfig{
-				Rounds: 10,
-			},
-			"argon": &hash.ArgonConfig{
-				Iterations: 10,
-			},
-		},
-		// List: make(map[string]interface{}, {
-		// 	"bcrypt":
-		// }),
-	})
+	// hasher.Extend("custom", func(data interface{}, hasher *hash.Hash) hash.HashDriverContract {
+	// 	config := &CustomDriverConfig{}
 
-	hasher.Use("argon").Make("test")
+	// 	hasher.BindConfig(data, config)
+
+	// 	return &CustomDriver{
+	// 		Config: config,
+	// 	}
+	// })
+
+	// Mail
+	// hasher
+	// log
+	// config
+	// dig
+	// folders
+	// providers
+	// gorm
+	// default baseMiodel functions
+	// auth jwt session
+	// redis
+	// cors
+	// trotlher
+	// social login
+	// storage
+	// mail queeue
+	// queues
+	// sms
+	// push
+	// notification
+	// state
+
+	// fmt.Println(hasher.Use("custom").Make("Holi"))
+	// fmt.Println(hasher.Use("bcrypt").Make("Holi"))
 
 	// mailer := mail.NewMailer()
 	// TODO
