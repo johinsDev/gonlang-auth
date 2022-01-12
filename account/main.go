@@ -11,30 +11,23 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gookit/config"
-	"github.com/gookit/config/yaml"
 	"github.com/johinsDev/authentication/app/providers"
 	"github.com/johinsDev/authentication/handler"
 )
 
 func main() {
+
 	log.SetFormatter(&log.JSONFormatter{
 		PrettyPrint: true,
 	})
 
-	config.WithOptions(config.ParseEnv)
+	providers.Container().Provide(providers.NewConfig)
+	providers.Container().Provide(providers.NewHash)
+	providers.Container().Provide(providers.NewDatabase)
 
-	config.AddDriver(yaml.Driver)
+	// providers.NewDatabase()
 
-	err := config.LoadFiles("config/auth.yml", "config/database.yml", "config/hash.yml")
-
-	if err != nil {
-		panic(err)
-	}
-
-	providers.NewDatabase()
-
-	providers.NewHash()
+	// providers.NewHash()
 
 	log.Info("Starting server...")
 

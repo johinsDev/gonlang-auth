@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johinsDev/authentication/app"
 	"github.com/johinsDev/authentication/lib/hash"
-	"github.com/johinsDev/authentication/models"
 )
 
 // Handler struct holds required services for handler to function
@@ -67,10 +67,9 @@ func (hasher *CustomBcrypt) Verify(hashedValue string, plainValue string) (bool,
 }
 
 func (h *Handler) Mail(c *gin.Context) {
-	user := models.User{}
 
-	user.Name = "johan"
-	user.Email = "johandbz@hotmail.com"
+	// user.Name = "johan"
+	// user.Email = "johandbz@hotmail.com"
 
 	// hasher.Extend("custom", func(data interface{}, hasher *hash.Hash) hash.HashDriverContract {
 	// 	config := &CustomDriverConfig{}
@@ -127,8 +126,10 @@ func (h *Handler) Mail(c *gin.Context) {
 	// 	message.To(user.Email, user.Name).Subject("Testing golang")
 	// })
 
+	value, _ := app.Hash().Make("bcryptme")
+
 	c.JSON(http.StatusOK, gin.H{
-		"hello": "it's Mail",
+		"hello": value,
 	})
 }
 

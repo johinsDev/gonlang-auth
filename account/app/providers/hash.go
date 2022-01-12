@@ -8,7 +8,6 @@ import (
 
 // provider config
 // provider logger
-// dig
 // provider server (port, prefix) move handler to app
 // authentication service
 // authentication multiple drivers and providers
@@ -23,14 +22,14 @@ import (
 // baseModel
 // dynamic filter model
 
-func NewHash() *hash.Hash {
+func NewHash(c *config.Config) *hash.Hash {
 	logrus.Info("Starting hash...")
 
 	return hash.NewHasher(&hash.Config{
-		DefaultHash: config.DefString("HASH.DRIVER", "bcrypt"),
+		DefaultHash: c.DefString("HASH.DRIVER", "bcrypt"),
 		List: map[string]interface{}{
 			"bcrypt": &hash.BcryptConfig{
-				Rounds: config.DefInt("HASH.BCRYPT.ROUNDS", 10),
+				Rounds: c.DefInt("HASH.BCRYPT.ROUNDS", 10),
 				BaseConfig: hash.BaseConfig{
 					Driver: "bcrypt",
 				},

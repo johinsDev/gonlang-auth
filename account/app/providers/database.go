@@ -9,14 +9,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewDatabase() *gorm.DB {
+func NewDatabase(c *config.Config) *gorm.DB {
 	logrus.Info("Starting database...")
 
-	host, _ := config.String("DB_HOST")
-	port, _ := config.String("DB_PORT")
-	username, _ := config.String("DB_USERNAME")
-	password, _ := config.String("DB_PASSWORD")
-	name, _ := config.String("DB_NAME")
+	host, _ := c.String("DB_HOST")
+	port, _ := c.String("DB_PORT")
+	username, _ := c.String("DB_USERNAME")
+	password, _ := c.String("DB_PASSWORD")
+	name, _ := c.String("DB_NAME")
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s",
