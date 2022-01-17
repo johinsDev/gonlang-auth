@@ -10,6 +10,7 @@ import (
 type HashDriverContract interface {
 	Make(value string) (string, error)
 	Verify(hashedValue string, plainValue string) (bool, error)
+	NeedReHash(hashedValue string) (bool, error)
 }
 
 type BaseConfig struct {
@@ -173,6 +174,10 @@ func (hasher *Hash) Verify(hashedValue string, plainValue string) (bool, error) 
 	return hasher.Use().Verify(hashedValue, plainValue)
 }
 
+func (hasher *Hash) NeedReHash(hashedValue string) (bool, error) {
+	return hasher.Use().NeedReHash(hashedValue)
+}
+
 func NewHasher(config *Config) *Hash {
 	return &Hash{
 		config:         config,
@@ -181,3 +186,23 @@ func NewHasher(config *Config) *Hash {
 		ExtendedGuards: make(map[string]func(config interface{}, hasher *Hash) HashDriverContract),
 	}
 }
+
+func Make(value string) (string, error) {
+	// TODO create approach to change options in ex time like this
+	// option create difference instance and by default load a instance --> with this aproach could remove the option
+	// of use a dig
+	// config.WithOptions(func(o *config.Options) {
+	// 	o.ParseEnv = true
+	// })
+
+	return test.Use().Make(value)
+}
+
+var test = NewHasher(&Config{
+	DefaultHash: "bcrypt",
+	List: map[string]interface{}{
+		"bcrypt": &BcryptConfig{
+			Rounds: 100,
+		},
+	},
+})

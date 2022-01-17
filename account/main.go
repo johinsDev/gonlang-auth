@@ -8,6 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +18,12 @@ import (
 )
 
 func main() {
+	// Wrapper logguer
+	// wrapper server
+	// wrapper session
+	// database support multiple driver and support models package to auto load
+
+	store := cookie.NewStore([]byte("secret"))
 
 	log.SetFormatter(&log.JSONFormatter{
 		PrettyPrint: true,
@@ -24,6 +32,7 @@ func main() {
 	providers.Container().Provide(providers.NewConfig)
 	providers.Container().Provide(providers.NewHash)
 	providers.Container().Provide(providers.NewDatabase)
+	providers.Container().Provide(providers.NewAuth)
 
 	// providers.NewDatabase()
 
@@ -32,6 +41,8 @@ func main() {
 	log.Info("Starting server...")
 
 	router := gin.Default()
+
+	router.Use(sessions.Sessions("server-session", store))
 
 	handler.NewHandler(&handler.Config{
 		R: router,

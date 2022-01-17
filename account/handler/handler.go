@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/johinsDev/authentication/app"
 	"github.com/johinsDev/authentication/lib/hash"
@@ -28,7 +32,7 @@ func NewHandler(c *Config) {
 
 	g.GET("/me", h.Me)
 	g.POST("/signup", h.Signup)
-	g.POST("/signin", h.Signin)
+	g.POST("/auth/signin", h.Signin)
 	g.POST("/signout", h.Signout)
 	g.POST("/tokens", h.Tokens)
 	g.POST("/image", h.Image)
@@ -128,6 +132,8 @@ func (h *Handler) Mail(c *gin.Context) {
 
 	value, _ := app.Hash().Make("bcryptme")
 
+	hash.Make("aaajkajaj")
+
 	c.JSON(http.StatusOK, gin.H{
 		"hello": value,
 	})
@@ -150,8 +156,22 @@ func (h *Handler) Signup(c *gin.Context) {
 
 // Signin handler
 func (h *Handler) Signin(c *gin.Context) {
+	jsonData, _ := ioutil.ReadAll(c.Request.Body)
+
+	var data map[string]interface{}
+
+	json.Unmarshal([]byte(jsonData), &data)
+
+	_, id := app.Auth().Attempt(fmt.Sprint(data["email"]), fmt.Sprint(data["password"]))
+
+	session := sessions.Default(c)
+	session.Set("user-id", id)
+
+	session.Save()
+
 	c.JSON(http.StatusOK, gin.H{
-		"hello": "it's signin",
+		"data":   data["password"],
+		"hashed": session.Get("user-id"),
 	})
 }
 

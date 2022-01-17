@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/gookit/config"
 	"github.com/johinsDev/authentication/app/providers"
+	"github.com/johinsDev/authentication/lib/authentication"
 	"github.com/johinsDev/authentication/lib/hash"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -49,4 +50,18 @@ func Hash() *hash.Hash {
 	}
 
 	return h
+}
+
+func Auth() *authentication.Auth {
+	var a *authentication.Auth
+
+	err := providers.Container().Invoke(func(auth *authentication.Auth) {
+		a = auth
+	})
+
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	return a
 }

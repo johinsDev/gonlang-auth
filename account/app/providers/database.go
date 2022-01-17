@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gookit/config"
+	"github.com/johinsDev/authentication/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,6 +33,8 @@ func NewDatabase(c *config.Config) *gorm.DB {
 	if err != nil {
 		logrus.Error("Error init database", err)
 	}
+
+	db.AutoMigrate(&models.User{})
 
 	return db
 }
